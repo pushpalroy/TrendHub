@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">TrendHub</string>
+    <string name="app_description">Application that displays trending GitHub repositories and their details.</string>
+    <string name="stars">4657</string>
+    <string name="forks">223</string>
+    <string name="sample_language">Kotlin</string>
+    <string name="sample_author">Author</string>
 </resources>
