@@ -18,18 +18,21 @@ class HomeViewModel @Inject constructor() : BaseViewModel() {
     @Inject
     lateinit var githubRepo: GithubRepo
 
-    var dataLoading: MutableLiveData<Boolean> = MutableLiveData()
-    var dataGithubRepoListRemote: MutableLiveData<List<Repo>> = MutableLiveData()
-    var dataGithubRepoListLocal: MutableLiveData<List<RoomRepo>> = MutableLiveData()
+    var liveDataLoading: MutableLiveData<Boolean> = MutableLiveData()
+    var liveDataRepoListRemote: MutableLiveData<List<Repo>> = MutableLiveData()
+    var liveDataRepoListDb: MutableLiveData<List<RoomRepo>> = MutableLiveData()
 
-    fun loadMostTrendingRepoCoroutine(language: String, since: String, spokenLangCode: String) {
-        dataLoading.value = true
+    /**
+     * Load repos from API
+     */
+    fun loadReposFromApi(language: String, since: String, spokenLangCode: String) {
+        liveDataLoading.value = true
         viewModelScope.launch {
-            val response = githubRepo.getMostTrendingReposCoroutine(language, since, spokenLangCode)
-            dataLoading.value = false
+            val response = githubRepo.getReposFromApi(language, since, spokenLangCode)
             when (response) {
                 is NetworkResult.Success -> {
-                    dataGithubRepoListRemote.value = response.body
+                    liveDataRepoListRemote.value = response.body
+                    liveDataLoading.value = false
                 }
                 is NetworkResult.Failure -> {
                     Timber.e("onError")
@@ -38,30 +41,43 @@ class HomeViewModel @Inject constructor() : BaseViewModel() {
         }
     }
 
-    fun insertAllReposInDatabase(repositories: List<RoomRepo>) {
-        addDisposable(
-            githubRepo.insertAllReposInDatabase(repositories)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ Timber.i("Success") },
-                    { error -> Timber.e(error) })
-        )
-    }
-
-    fun loadAllReposFromDatabase() {
-        dataLoading.value = true
-        val response = githubRepo.getMostTrendingReposFromDatabase()
+    /**
+     * Load repos from local DB
+     */
+    fun loadReposFromDb() {
+        liveDataLoading.value = true
+        val response = githubRepo.getReposFromDb()
 
         addDisposable(
             response
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ dataGithubRepoListLocal.value = it },
+                .subscribe(
+                    {
+                        liveDataRepoListDb.value = it
+                        liveDataLoading.value = false
+                    },
                     { error -> Timber.e(error) })
         )
-        dataLoading.value = false
     }
 
+    /**
+     * Load repo in local DB
+     */
+    fun insertReposInDb(repositories: List<RoomRepo>) {
+        addDisposable(
+            githubRepo.insertReposInDb(repositories)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    { Timber.i("Success") },
+                    { error -> Timber.e(error) })
+        )
+    }
+
+    /**
+     * Convert: List<Repo> -> List<RoomRepo>
+     */
     fun convertModelTypeToRoom(repositories: List<Repo>): List<RoomRepo> {
         val repoList: ArrayList<RoomRepo> = ArrayList()
         var repoRoom: RoomRepo
@@ -86,6 +102,9 @@ class HomeViewModel @Inject constructor() : BaseViewModel() {
         return repoList
     }
 
+    /**
+     * Convert: List<RoomRepo> -> List<Repo>
+     */
     fun convertModelTypeToRetrofit(repositories: List<RoomRepo>): List<Repo> {
         val repoList: ArrayList<Repo> = ArrayList()
         var repo: Repo

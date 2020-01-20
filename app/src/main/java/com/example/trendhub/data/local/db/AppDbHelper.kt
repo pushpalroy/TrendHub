@@ -8,19 +8,19 @@ class AppDbHelper constructor(appDatabase: AppDatabase) : DbHelper {
 
     private val mAppDatabase: AppDatabase = appDatabase
 
-    override fun getMostTrendingRepositories(): Flowable<List<RoomRepo>> {
-        return mAppDatabase.repoDao().getMostTrendingRepositories()
+    override fun getReposFromDb(): Flowable<List<RoomRepo>> {
+        return mAppDatabase.repoDao().getTrendingRepos()
     }
 
-    override fun getMostTrendingRepositories(language: String): Flowable<List<RoomRepo>> {
-        return mAppDatabase.repoDao().getMostTrendingRepositories(language)
+    override fun getReposFromDb(language: String): Flowable<List<RoomRepo>> {
+        return mAppDatabase.repoDao().getTrendingRepos(language)
     }
 
-    override fun saveRepository(repository: RoomRepo) {
-        mAppDatabase.repoDao().saveRepository(repository)
+    override fun saveRepo(repository: RoomRepo) {
+        mAppDatabase.repoDao().saveRepo(repository)
     }
 
-    override fun saveAllRepositories(repositories: List<RoomRepo>): Completable {
-        return mAppDatabase.repoDao().saveAllRepositories(*repositories.toTypedArray())
+    override fun saveRepos(repositories: List<RoomRepo>): Completable {
+        return mAppDatabase.repoDao().saveRepos(*repositories.toTypedArray())
     }
 }

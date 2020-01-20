@@ -6,12 +6,12 @@ import io.reactivex.Flowable
 
 interface DbHelper {
 
-    fun getMostTrendingRepositories(): Flowable<List<RoomRepo>>
+    fun getReposFromDb(): Flowable<List<RoomRepo>>
 
-    fun getMostTrendingRepositories(language: String): Flowable<List<RoomRepo>>
+    fun getReposFromDb(language: String): Flowable<List<RoomRepo>>
 
-    fun saveRepository(repository: RoomRepo)
+    fun saveRepo(repository: RoomRepo)
 
-    fun saveAllRepositories(repositories: List<RoomRepo>): Completable
+    fun saveRepos(repositories: List<RoomRepo>): Completable
 
 }

@@ -9,17 +9,16 @@ import io.reactivex.Completable
 import io.reactivex.Flowable
 
 class GithubRepo constructor(
-    private val coroutineApiService: CoroutineApiService,
-    private val appDbHelper: AppDbHelper
+    private val apiService: CoroutineApiService, private val appDbHelper: AppDbHelper
 ) {
 
-    suspend fun getMostTrendingReposCoroutine(
+    suspend fun getReposFromApi(
         language: String,
         since: String,
         spokenLangCode: String
     ): NetworkResult<List<Repo>> {
         val response =
-            coroutineApiService.getTrendingRepositories(language, since, spokenLangCode)
+            apiService.getTrendingReposFromApi(language, since, spokenLangCode)
         if (response.isSuccessful) {
             val data = response.body()
             if (data != null) {
@@ -29,12 +28,11 @@ class GithubRepo constructor(
         return NetworkResult.Failure(response)
     }
 
-    fun insertAllReposInDatabase(repositories: List<RoomRepo>): Completable {
-        return appDbHelper.saveAllRepositories(repositories)
+    fun insertReposInDb(repositories: List<RoomRepo>): Completable {
+        return appDbHelper.saveRepos(repositories)
     }
 
-    fun getMostTrendingReposFromDatabase(): Flowable<List<RoomRepo>> {
-        val response = appDbHelper.getMostTrendingRepositories()
-        return response
+    fun getReposFromDb(): Flowable<List<RoomRepo>> {
+        return appDbHelper.getReposFromDb()
     }
 }

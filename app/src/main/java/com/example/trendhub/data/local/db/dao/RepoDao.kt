@@ -13,17 +13,17 @@ import io.reactivex.Single
 interface RepoDao {
 
     @Query("SELECT * FROM repo_table")
-    fun getMostTrendingRepositories(): Flowable<List<RoomRepo>>
+    fun getTrendingRepos(): Flowable<List<RoomRepo>>
 
     @Query("SELECT * FROM repo_table WHERE language = :language")
-    fun getMostTrendingRepositories(language: String): Flowable<List<RoomRepo>>
+    fun getTrendingRepos(language: String): Flowable<List<RoomRepo>>
 
     @Insert
-    fun saveRepository(repository: RoomRepo)
+    fun saveRepo(repository: RoomRepo)
 
     @Insert
-    fun saveAllRepositories(vararg repositories: RoomRepo): Completable
+    fun saveRepos(vararg repositories: RoomRepo): Completable
 
     @Delete
-    fun deleteAllRepositories(repositories: List<RoomRepo>): Single<Int>
+    fun deleteRepos(repositories: List<RoomRepo>): Single<Int>
 }

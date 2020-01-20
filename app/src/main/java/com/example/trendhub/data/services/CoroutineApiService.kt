@@ -7,7 +7,7 @@ import retrofit2.http.Query
 
 interface CoroutineApiService {
     @GET("/repositories")
-    suspend fun getTrendingRepositories(
+    suspend fun getTrendingReposFromApi(
         @Query("language") language: String,
         @Query("since") since: String,
         @Query("spoken_language_code") spokenLangCode: String

@@ -41,26 +41,27 @@ class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(),
     }
 
     private fun setUpObservers() {
-        // Loading data from API
-        viewModel.loadMostTrendingRepoCoroutine("", "weekly", "english")
 
         // On loader data changed
-        viewModel.dataLoading.observe(this, Observer {
+        viewModel.liveDataLoading.observe(this, Observer {
             handleVisibility(it)
         })
 
+        // Load data from API
+        viewModel.loadReposFromApi("", "weekly", "english")
+
         // On data loaded from API
-        viewModel.dataGithubRepoListRemote.observe(this, Observer { it ->
+        viewModel.liveDataRepoListRemote.observe(this, Observer { it ->
             it?.let {
-                viewModel.insertAllReposInDatabase(viewModel.convertModelTypeToRoom(it))
+                viewModel.insertReposInDb(viewModel.convertModelTypeToRoom(it))
             }
         })
 
-        // Load data from local database
-        viewModel.loadAllReposFromDatabase()
+        // Load data from local db
+        viewModel.loadReposFromDb()
 
-        // On local data loaded
-        viewModel.dataGithubRepoListLocal.observe(this, Observer { it ->
+        // On data loaded from db
+        viewModel.liveDataRepoListDb.observe(this, Observer { it ->
             it?.let {
                 mAdapter.setRepoList(viewModel.convertModelTypeToRetrofit(it))
             }
