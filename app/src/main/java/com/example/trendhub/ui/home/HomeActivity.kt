@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.trendhub.R
-import com.example.trendhub.data.model.Repo
 import com.example.trendhub.databinding.ActivityHomeBinding
 import com.example.trendhub.ui.base.BaseActivity
 
@@ -25,18 +24,7 @@ class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(),
         super.onCreate(savedInstanceState)
 
         setUpUi()
-
-        viewModel.loadMostTrendingRepoCoroutine("", "weekly", "english")
-
-        viewModel.dataLoading.observe(this, Observer {
-            handleVisibility(it)
-        })
-
-        viewModel.dataGithubRepo.observe(this, Observer { it ->
-            it?.let {
-                mAdapter.setRepoList(it)
-            }
-        })
+        setUpObservers()
     }
 
     private fun setUpUi() {
@@ -50,6 +38,33 @@ class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(),
                 DividerItemDecoration.VERTICAL
             )
         )
+    }
+
+    private fun setUpObservers() {
+        // Loading data from API
+        viewModel.loadMostTrendingRepoCoroutine("", "weekly", "english")
+
+        // On loader data changed
+        viewModel.dataLoading.observe(this, Observer {
+            handleVisibility(it)
+        })
+
+        // On data loaded from API
+        viewModel.dataGithubRepoListRemote.observe(this, Observer { it ->
+            it?.let {
+                viewModel.insertAllReposInDatabase(viewModel.convertModelTypeToRoom(it))
+            }
+        })
+
+        // Load data from local database
+        viewModel.loadAllReposFromDatabase()
+
+        // On local data loaded
+        viewModel.dataGithubRepoListLocal.observe(this, Observer { it ->
+            it?.let {
+                mAdapter.setRepoList(viewModel.convertModelTypeToRetrofit(it))
+            }
+        })
     }
 
     private fun handleVisibility(loading: Boolean) {

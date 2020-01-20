@@ -7,10 +7,6 @@
         <variable
             name="viewModel"
             type="com.example.trendhub.ui.home.HomeViewModel" />
-
-        <variable
-            name="data"
-            type="UiTrendingModel" />
     </data>
 
 

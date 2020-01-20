@@ -27,5 +27,5 @@ data class Repo(
     @SerializedName("currentPeriodStars")
     val currentPeriodStars: Int,
     @SerializedName("builtBy")
-    val contributors: ArrayList<out Contributor>
+    val contributors: List<Contributor>
 ) : Parcelable

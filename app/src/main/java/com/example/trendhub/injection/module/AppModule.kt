@@ -1,9 +1,15 @@
 package com.example.trendhub.injection.module
 
+import android.content.Context
+import androidx.room.Room
 import com.example.trendhub.AppConstants
 import com.example.trendhub.BuildConfig
+import com.example.trendhub.data.local.db.AppDatabase
+import com.example.trendhub.data.local.db.AppDbHelper
 import com.example.trendhub.data.repo.GithubRepo
 import com.example.trendhub.data.services.CoroutineApiService
+import com.example.trendhub.injection.qualifiers.ApplicationContext
+import com.example.trendhub.injection.qualifiers.DatabaseInfo
 import com.example.trendhub.utils.IRxSchedulers
 import dagger.Module
 import dagger.Provides
@@ -18,6 +24,26 @@ import javax.inject.Singleton
 
 @Module
 class AppModule {
+
+    @Provides
+    @DatabaseInfo
+    internal fun provideDatabaseName(): String {
+        return AppConstants.DB_NAME
+    }
+
+    @Provides
+    @Singleton
+    fun provideAppDbHelper(appDatabase: AppDatabase): AppDbHelper {
+        return AppDbHelper(appDatabase)
+    }
+
+    @Provides
+    @Singleton
+    internal fun provideAppDatabase(@DatabaseInfo dbName: String, @ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(context, AppDatabase::class.java, dbName)
+            .fallbackToDestructiveMigration()
+            .build()
+    }
 
     @Provides
     @Singleton
@@ -51,8 +77,11 @@ class AppModule {
 
     @Provides
     @Singleton
-    internal fun provideCoroutineJokeRepo(coroutineApiService: CoroutineApiService): GithubRepo {
-        return GithubRepo(coroutineApiService)
+    internal fun provideCoroutineGithubRepo(
+        coroutineApiService: CoroutineApiService,
+        appDbHelper: AppDbHelper
+    ): GithubRepo {
+        return GithubRepo(coroutineApiService, appDbHelper)
     }
 
     @Provides

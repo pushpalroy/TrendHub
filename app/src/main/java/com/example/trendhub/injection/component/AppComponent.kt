@@ -5,6 +5,7 @@ import com.example.trendhub.BaseApplication
 import com.example.trendhub.injection.module.ActivityBindingModule
 import com.example.trendhub.injection.module.AppModule
 import com.example.trendhub.injection.module.ViewModelFactoryModule
+import com.example.trendhub.injection.qualifiers.ApplicationContext
 import dagger.BindsInstance
 import dagger.Component
 import dagger.android.AndroidInjector
@@ -17,6 +18,6 @@ interface AppComponent : AndroidInjector<BaseApplication> {
 
     @Component.Factory
     interface Factory {
-        fun create(@BindsInstance applicationContext: Context): AppComponent
+        fun create(@BindsInstance @ApplicationContext applicationContext: Context): AppComponent
     }
 }
