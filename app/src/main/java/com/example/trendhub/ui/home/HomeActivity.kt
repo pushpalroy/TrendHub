@@ -44,7 +44,7 @@ class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(),
 
         // On loader data changed
         viewModel.liveDataLoading.observe(this, Observer {
-            handleVisibility(it)
+            loaderVisibility(it)
         })
 
         // Load data from API
@@ -68,7 +68,7 @@ class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(),
         })
     }
 
-    private fun handleVisibility(loading: Boolean) {
+    private fun loaderVisibility(loading: Boolean) {
         binding.progressbar.visibility = if (loading) View.VISIBLE else View.INVISIBLE
     }
 

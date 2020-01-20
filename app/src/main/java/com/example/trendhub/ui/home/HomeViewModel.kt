@@ -24,18 +24,21 @@ class HomeViewModel @Inject constructor() : BaseViewModel() {
 
     /**
      * Load repos from API
+     * @param language Programming language of repository: Optional
+     * @param since default to daily, possible values: daily, weekly and monthly: Optional
+     * @param spokenLangCode spoken language: Optional
      */
     fun loadReposFromApi(language: String, since: String, spokenLangCode: String) {
         liveDataLoading.value = true
         viewModelScope.launch {
-            val response = githubRepo.getReposFromApi(language, since, spokenLangCode)
-            when (response) {
+            when (val response = githubRepo.getReposFromApi(language, since, spokenLangCode)) {
                 is NetworkResult.Success -> {
                     liveDataRepoListRemote.value = response.body
                     liveDataLoading.value = false
                 }
                 is NetworkResult.Failure -> {
                     Timber.e("onError")
+                    liveDataLoading.value = false
                 }
             }
         }
@@ -57,26 +60,38 @@ class HomeViewModel @Inject constructor() : BaseViewModel() {
                         liveDataRepoListDb.value = it
                         liveDataLoading.value = false
                     },
-                    { error -> Timber.e(error) })
+                    { error ->
+                        Timber.e(error)
+                        liveDataLoading.value = false
+                    })
         )
     }
 
     /**
-     * Load repo in local DB
+     * Insert repos in local DB
+     * @param repositories List of repositories
      */
     fun insertReposInDb(repositories: List<RoomRepo>) {
+        liveDataLoading.value = true
         addDisposable(
             githubRepo.insertReposInDb(repositories)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                    { Timber.i("Success") },
-                    { error -> Timber.e(error) })
+                    {
+                        Timber.i("Success")
+                        liveDataLoading.value = false
+                    },
+                    { error ->
+                        Timber.e(error)
+                        liveDataLoading.value = false
+                    })
         )
     }
 
     /**
      * Convert: List<Repo> -> List<RoomRepo>
+     * @param repositories List of repositories
      */
     fun convertModelTypeToRoom(repositories: List<Repo>): List<RoomRepo> {
         val repoList: ArrayList<RoomRepo> = ArrayList()
@@ -104,6 +119,7 @@ class HomeViewModel @Inject constructor() : BaseViewModel() {
 
     /**
      * Convert: List<RoomRepo> -> List<Repo>
+     * @param repositories List of repositories
      */
     fun convertModelTypeToRetrofit(repositories: List<RoomRepo>): List<Repo> {
         val repoList: ArrayList<Repo> = ArrayList()
