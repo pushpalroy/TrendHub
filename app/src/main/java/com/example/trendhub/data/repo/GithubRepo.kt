@@ -1,24 +1,26 @@
 package com.example.trendhub.data.repo
 
-import com.example.trendhub.data.local.db.AppDbHelper
+import androidx.lifecycle.LiveData
+import com.example.trendhub.data.local.db.AppDatabase
+import com.example.trendhub.data.local.db.DbHelper
 import com.example.trendhub.data.local.db.model.RoomRepo
 import com.example.trendhub.data.model.Repo
+import com.example.trendhub.data.services.ApiHelper
 import com.example.trendhub.data.services.CoroutineApiService
 import com.example.trendhub.data.services.NetworkResult
 import io.reactivex.Completable
 import io.reactivex.Flowable
 
 class GithubRepo constructor(
-    private val apiService: CoroutineApiService, private val appDbHelper: AppDbHelper
-) {
+    private val apiService: CoroutineApiService, private val appDatabase: AppDatabase
+) : DbHelper, ApiHelper {
 
-    suspend fun getReposFromApi(
+    override suspend fun getReposFromApi(
         language: String,
         since: String,
         spokenLangCode: String
     ): NetworkResult<List<Repo>> {
-        val response =
-            apiService.getTrendingReposFromApi(language, since, spokenLangCode)
+        val response = apiService.getTrendingReposFromApi(language, since, spokenLangCode)
         if (response.isSuccessful) {
             val data = response.body()
             if (data != null) {
@@ -28,11 +30,23 @@ class GithubRepo constructor(
         return NetworkResult.Failure(response)
     }
 
-    fun insertReposInDb(repositories: List<RoomRepo>): Completable {
-        return appDbHelper.saveRepos(repositories)
+    override fun saveRepoInDb(repository: RoomRepo) {
+        appDatabase.repoDao().saveRepo(repository)
     }
 
-    fun getReposFromDb(): Flowable<List<RoomRepo>> {
-        return appDbHelper.getReposFromDb()
+    override fun saveReposInDb(repositories: List<RoomRepo>): Completable {
+        return appDatabase.repoDao().saveRepos(*repositories.toTypedArray())
+    }
+
+    override fun getReposFromDb(): Flowable<List<RoomRepo>> {
+        return appDatabase.repoDao().getTrendingRepos()
+    }
+
+    override fun getReposFromDb(language: String): Flowable<List<RoomRepo>> {
+        return appDatabase.repoDao().getTrendingRepos(language)
+    }
+
+    override fun getLiveReposFromDb(): LiveData<List<RoomRepo>> {
+        return appDatabase.repoDao().getLiveTrendingRepos()
     }
 }

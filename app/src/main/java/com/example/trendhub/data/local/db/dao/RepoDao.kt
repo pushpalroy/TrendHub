@@ -1,5 +1,6 @@
 package com.example.trendhub.data.local.db.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -14,6 +15,9 @@ interface RepoDao {
 
     @Query("SELECT * FROM repo_table")
     fun getTrendingRepos(): Flowable<List<RoomRepo>>
+
+    @Query("SELECT * FROM repo_table")
+    fun getLiveTrendingRepos(): LiveData<List<RoomRepo>>
 
     @Query("SELECT * FROM repo_table WHERE language = :language")
     fun getTrendingRepos(language: String): Flowable<List<RoomRepo>>

@@ -13,14 +13,15 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
-class HomeViewModel @Inject constructor() : BaseViewModel() {
-
-    @Inject
-    lateinit var githubRepo: GithubRepo
+class HomeViewModel @Inject constructor(private val githubRepo: GithubRepo) : BaseViewModel() {
 
     var liveDataLoading: MutableLiveData<Boolean> = MutableLiveData()
-    var liveDataRepoListRemote: MutableLiveData<List<Repo>> = MutableLiveData()
-    var liveDataRepoListDb: MutableLiveData<List<RoomRepo>> = MutableLiveData()
+    var liveDataRepoListDb = githubRepo.getLiveReposFromDb()
+
+    init {
+        // Load data from API
+        loadReposFromApi("kotlin", "weekly", "english")
+    }
 
     /**
      * Load repos from API
@@ -28,12 +29,12 @@ class HomeViewModel @Inject constructor() : BaseViewModel() {
      * @param since default to daily, possible values: daily, weekly and monthly: Optional
      * @param spokenLangCode spoken language: Optional
      */
-    fun loadReposFromApi(language: String, since: String, spokenLangCode: String) {
-        liveDataLoading.value = true
+    private fun loadReposFromApi(language: String, since: String, spokenLangCode: String) {
         viewModelScope.launch {
+            liveDataLoading.value = true
             when (val response = githubRepo.getReposFromApi(language, since, spokenLangCode)) {
                 is NetworkResult.Success -> {
-                    liveDataRepoListRemote.value = response.body
+                    insertReposInDb(convertModelTypeToRoom(response.body))
                     liveDataLoading.value = false
                 }
                 is NetworkResult.Failure -> {
@@ -45,36 +46,13 @@ class HomeViewModel @Inject constructor() : BaseViewModel() {
     }
 
     /**
-     * Load repos from local DB
-     */
-    fun loadReposFromDb() {
-        liveDataLoading.value = true
-        val response = githubRepo.getReposFromDb()
-
-        addDisposable(
-            response
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    {
-                        liveDataRepoListDb.value = it
-                        liveDataLoading.value = false
-                    },
-                    { error ->
-                        Timber.e(error)
-                        liveDataLoading.value = false
-                    })
-        )
-    }
-
-    /**
      * Insert repos in local DB
      * @param repositories List of repositories
      */
-    fun insertReposInDb(repositories: List<RoomRepo>) {
+    private fun insertReposInDb(repositories: List<RoomRepo>) {
         liveDataLoading.value = true
         addDisposable(
-            githubRepo.insertReposInDb(repositories)
+            githubRepo.saveReposInDb(repositories)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
@@ -93,7 +71,7 @@ class HomeViewModel @Inject constructor() : BaseViewModel() {
      * Convert: List<Repo> -> List<RoomRepo>
      * @param repositories List of repositories
      */
-    fun convertModelTypeToRoom(repositories: List<Repo>): List<RoomRepo> {
+    private fun convertModelTypeToRoom(repositories: List<Repo>): List<RoomRepo> {
         val repoList: ArrayList<RoomRepo> = ArrayList()
         var repoRoom: RoomRepo
         for (item in repositories) {

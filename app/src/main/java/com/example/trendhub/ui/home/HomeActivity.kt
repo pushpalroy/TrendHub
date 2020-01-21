@@ -47,25 +47,10 @@ class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(),
             loaderVisibility(it)
         })
 
-        // Load data from API
-        viewModel.loadReposFromApi("", "weekly", "english")
-
-        // On data loaded from API
-        viewModel.liveDataRepoListRemote.observe(this, Observer { it ->
-            it?.let {
-                viewModel.insertReposInDb(viewModel.convertModelTypeToRoom(it))
-            }
-        })
-
-        // Load data from local db
-        viewModel.loadReposFromDb()
-
-        // On data loaded from db
-        viewModel.liveDataRepoListDb.observe(this, Observer { it ->
-            it?.let {
-                mAdapter.setRepoList(viewModel.convertModelTypeToRetrofit(it))
-            }
-        })
+        // Observing live repos data
+        viewModel.liveDataRepoListDb.observe(
+            this,
+            Observer { result -> mAdapter.setRepoList(viewModel.convertModelTypeToRetrofit(result)) })
     }
 
     private fun loaderVisibility(loading: Boolean) {
@@ -73,6 +58,6 @@ class HomeActivity : BaseActivity<ActivityHomeBinding, HomeViewModel>(),
     }
 
     override fun onRepoClick(position: Int) {
-        Toast.makeText(this, "Repo Clicked: $position", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Repo Clicked: $position", Toast.LENGTH_SHORT).show()
     }
 }

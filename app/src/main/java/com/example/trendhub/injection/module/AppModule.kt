@@ -5,7 +5,6 @@ import androidx.room.Room
 import com.example.trendhub.AppConstants
 import com.example.trendhub.BuildConfig
 import com.example.trendhub.data.local.db.AppDatabase
-import com.example.trendhub.data.local.db.AppDbHelper
 import com.example.trendhub.data.repo.GithubRepo
 import com.example.trendhub.data.services.CoroutineApiService
 import com.example.trendhub.injection.qualifiers.ApplicationContext
@@ -29,12 +28,6 @@ class AppModule {
     @DatabaseInfo
     internal fun provideDatabaseName(): String {
         return AppConstants.DB_NAME
-    }
-
-    @Provides
-    @Singleton
-    fun provideAppDbHelper(appDatabase: AppDatabase): AppDbHelper {
-        return AppDbHelper(appDatabase)
     }
 
     @Provides
@@ -79,9 +72,9 @@ class AppModule {
     @Singleton
     internal fun provideCoroutineGithubRepo(
         coroutineApiService: CoroutineApiService,
-        appDbHelper: AppDbHelper
+        appDatabase: AppDatabase
     ): GithubRepo {
-        return GithubRepo(coroutineApiService, appDbHelper)
+        return GithubRepo(coroutineApiService, appDatabase)
     }
 
     @Provides
